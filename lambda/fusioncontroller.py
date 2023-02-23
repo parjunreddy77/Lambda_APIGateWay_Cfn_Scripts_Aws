@@ -7,5 +7,5 @@ def handler(event, context):
         'headers': {
             'Content-Type': 'text/plain'
         },
-        'body': 'Testing Lambda Function Via RestAPI {}\n'.format(event['path'])
+        'body': 'Lambda Function triggered by AWS APIGateWay(RestAPI) {}\n'.format(event['path'])
     }
