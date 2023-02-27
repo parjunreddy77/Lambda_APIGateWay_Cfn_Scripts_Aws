@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - yum install pip -y
+      - pip install --upgrade pip
+      - pip install coverage
+      - pip install pytest
+      - pip install -r requirements.txt
+
+  pre_build:
+    commands:
+      - curl --create-dirs -sSLo /tmp/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
+      - unzip -o /tmp/sonar-scanner.zip -d /tmp
+      - export PATH=$PATH:/tmp/sonar-scanner-4.6.2.2472-linux/bin
+      
+  build:
+    commands:
+      - coverage run --source=./ -m pytest tests/
+      - coverage xml -o coverage.xml
+      - sonar-scanner -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=717209e4bbaefa7e0af671045e9653f7efb34f1e -Dsonar.organization=mallikarjuna -Dsonar.projectKey=mallikarjuna_fusioncontroller -Dsonar.projectName=fusioncontroller -Dsonar.python.coverage.reportPaths=coverage.xml
+          
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: yes

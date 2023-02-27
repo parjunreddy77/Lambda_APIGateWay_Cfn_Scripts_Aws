@@ -1,0 +1,196 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFormation template for s3 bucket, Dynamo DB, Glue DataBase, OpenSearch Domain, Athena WorkGroup, Spark Application
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+
+    Properties:
+      BucketName: hellofusionsubs3097
+
+      VersioningConfiguration:
+        Status: Enabled
+
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID: KMS-KEY-ARN
+
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+      Tags:
+       - Key: Key1
+         Value: Value1
+       - Key: Key2
+         Value: Value2
+
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+
+  MyDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    
+    Properties:
+      TableName: hellofusiondynamodb097
+
+      AttributeDefinitions:
+        - AttributeName: ref_event_uid
+          AttributeType: N
+        # - AttributeName: timestamp
+        #   AttributeType: N
+        
+# S - the attribute is of type String
+# N - the attribute is of type Number
+# B - the attribute is of type Binary
+
+      KeySchema:
+      # HASH - partition key
+        - AttributeName: ref_event_uid
+          KeyType: HASH
+        #   # RANGE - sort key
+        # - AttributeName: timestamp
+        #   KeyType: RANGE
+      
+      # ProvisionedThroughput:
+      #   ReadCapacityUnits: 1
+      #   WriteCapacityUnits: 1
+      
+      BillingMode: PAY_PER_REQUEST
+
+      SSESpecification:
+        SSEEnabled: true
+
+      Tags:
+        - Key: "Key1"
+          Value: "Value1" 
+
+  MyGlueDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      DatabaseInput:
+        Name: hellofusiongluedatabase097
+        Description: "Glue beats tape"
+      CatalogId: !Ref AWS::AccountId
+
+  MyGlueTable:
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref MyGlueDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: hellofusiongluetable097
+        Parameters: { "classification" : "csv" }
+        StorageDescriptor:
+          Location: "s3://practice-emr/customers/customer.csv/"
+          InputFormat: "org.apache.hadoop.mapred.TextInputFormat"
+          OutputFormat: "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+          SerdeInfo:
+            Parameters: { "separatorChar" : "," }
+            SerializationLibrary: "org.apache.hadoop.hive.serde2.OpenCSVSerde"
+          StoredAsSubDirectories: false
+          Columns:
+            - Name: column0
+              Type: string
+            - Name: column1
+              Type: string	  
+              
+  OpenSearchDomain:
+    Type: "AWS::OpenSearchService::Domain"
+    Properties:
+      DomainName: "hellofusionopensearch097"
+      EngineVersion: "OpenSearch_1.1"
+      ClusterConfig:
+        DedicatedMasterEnabled: true
+        InstanceCount: 3
+        InstanceType: "r6g.large.search"
+        DedicatedMasterCount: 3
+        DedicatedMasterType: "r6g.large.search"
+        ZoneAwarenessEnabled: false
+      EncryptionAtRestOptions:
+        Enabled: false
+      LogPublishingOptions:
+        SEARCH_SLOW_LOGS:
+          Enabled: false
+        ES_APPLICATION_LOGS:
+          Enabled: false
+        INDEX_SLOW_LOGS:
+          Enabled: false
+        AUDIT_LOGS:
+          Enabled: false
+      NodeToNodeEncryptionOptions:
+        Enabled: false
+      EBSOptions:
+        EBSEnabled: true
+        VolumeSize: 50
+
+  MyAthenaWorkGroup:
+    Type: AWS::Athena::WorkGroup
+    Properties:
+      Name: hellofusionathenaworkgroup097
+      Description: My WorkGroup Updated
+      State: DISABLED
+      Tags:
+        - Key: "key1"
+          Value: "value1"
+        - Key: "key2"
+          Value: "value2"
+      WorkGroupConfiguration:
+        BytesScannedCutoffPerQuery: 10000000
+        EnforceWorkGroupConfiguration: true
+        PublishCloudWatchMetricsEnabled: true
+        RequesterPaysEnabled: false
+        ResultConfiguration:
+          EncryptionConfiguration:
+            EncryptionOption: SSE_S3
+          OutputLocation: s3://path/to/my/bucket/updated/    
+
+  SparkApplication:
+    Type: AWS::EMRServerless::Application
+    Properties:
+      Name: spark-3.3.0
+      ReleaseLabel: emr-6.9.0
+      Type: Spark
+      MaximumCapacity:
+        Cpu: 200 vCPU
+        Memory: 100 GB
+      AutoStartConfiguration:
+        Enabled: true
+      AutoStopConfiguration:
+        Enabled: true
+        IdleTimeoutMinutes: 100
+      InitialCapacity:
+        - Key: Driver
+          Value:
+            WorkerCount: 3
+            WorkerConfiguration:
+              Cpu: 2 vCPU
+              Memory: 4 GB
+              Disk: 21 GB
+        - Key: Executor
+          Value:
+            WorkerCount: 4
+            WorkerConfiguration:
+              Cpu: 1 vCPU
+              Memory: 4 GB
+              Disk: 20 GB
+      Tags:
+        - Key: "key"
+          Value: "value"  
+Outputs:
+  S3Bucket:
+    Value: !Ref S3Bucket
+  MyDynamoDBTable:
+    Value: !Ref MyDynamoDBTable
+  MyGlueDatabase:
+    Value: !Ref MyGlueDatabase
+  OpenSearchDomain:
+    Value: !Ref OpenSearchDomain
+  MyAthenaWorkGroup:
+    Value: !Ref MyAthenaWorkGroup
+  SparkApplication:
+    Value: !Ref SparkApplication
