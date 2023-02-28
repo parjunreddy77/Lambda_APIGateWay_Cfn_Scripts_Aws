@@ -7,5 +7,5 @@ def handler(event, context):
         'headers': {
             'Content-Type': 'text/plain'
         },
-        'body': 'Lambda Function triggered by AWS APIGateWay(RestAPI) {}\n'.format(event['path'])
+        'body': 'CDK Infrastructure Deployment successful..! {}\n'.format(event['path'])
     }
