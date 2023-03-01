@@ -13,26 +13,29 @@ class FusionStack(Stack):
         super().__init__(scope, id, **kwargs)
 
         my_lambda = _lambda.Function(
-            self, 'FusionLambdaFunction',
+            self, 
+            'FusionLambdaFunction',
+            description='Deploying Lambda Function Infrastrcture',
             runtime=_lambda.Runtime.PYTHON_3_9,
             code=_lambda.Code.from_asset('lambda'),
             handler='fusioncontroller.handler',
         )
         
+        api = apigateway.RestApi(
+            self,
+            'FusionControllerRestAPI',
+            description='Deploying REST API Infrastrcture',
+            deploy_options={
+                 'stage_name': 'dev',
+            }
+        )
+
         state_machine = stepfunctions.StateMachine(self, "MyStateMachine",
             state_machine_type=stepfunctions.StateMachineType.EXPRESS,
             definition=stepfunctions.Chain.start(stepfunctions.Pass(self, "Pass"))
-        )
-
-        api = apigateway.RestApi(self, "Api",
-            rest_api_name="FusionControllerRestAPI"
         )
 
         api.root.add_method("GET", apigateway.StepFunctionsIntegration.start_execution(state_machine))
         api.root.add_method("POST", apigateway.StepFunctionsIntegration.start_execution(state_machine))
 
         api_key = api.add_api_key("ApiKey", api_key_name="ApiKey", value="1234567890abcdefghij")
-
-        plan = api.add_usage_plan("UsagePlan",
-            name="Test",
-        )
