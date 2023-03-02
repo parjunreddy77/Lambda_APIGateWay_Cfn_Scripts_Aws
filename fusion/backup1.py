@@ -31,12 +31,17 @@ class FusionStack(Stack):
             }
         )
 
-        api.root.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        api.root.add_method("POST", apigateway.LambdaIntegration(my_lambda))
-        api.root.add_method("PUT", apigateway.LambdaIntegration(my_lambda))
-        api.root.add_method("HEAD", apigateway.LambdaIntegration(my_lambda))
-        api.root.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
-        api.root.add_method("PATCH", apigateway.LambdaIntegration(my_lambda))
-        api.root.add_method("DELETE", apigateway.LambdaIntegration(my_lambda))
+        state_machine = stepfunctions.StateMachine(self, "MyStateMachine",
+            state_machine_type=stepfunctions.StateMachineType.EXPRESS,
+            definition=stepfunctions.Chain.start(stepfunctions.Pass(self, "Pass"))
+        )
+
+        api.root.add_method("GET", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("POST", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("HEAD", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("OPTIONS", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("PATCH", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("PUT", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("DELETE", apigateway.StepFunctionsIntegration.start_execution(state_machine))
 
         api_key = api.add_api_key("ApiKey", api_key_name="ApiKey", value="1234567890abcdefghij")
