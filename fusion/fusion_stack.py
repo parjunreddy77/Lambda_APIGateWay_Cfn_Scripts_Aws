@@ -21,9 +21,10 @@ class FusionStack(Stack):
             handler='fusioncontroller.handler',
         )
         
-        api = apigateway.RestApi(
+        api = apigateway.LambdaRestApi(
             self,
             'FusionControllerRestAPI',
+            handler=my_lambda,
             description='Deploying REST API Infrastrcture',
             deploy_options={
                  'stage_name': 'dev',
@@ -37,5 +38,10 @@ class FusionStack(Stack):
 
         api.root.add_method("GET", apigateway.StepFunctionsIntegration.start_execution(state_machine))
         api.root.add_method("POST", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("HEAD", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("OPTIONS", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("PATCH", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("PUT", apigateway.StepFunctionsIntegration.start_execution(state_machine))
+        api.root.add_method("DELETE", apigateway.StepFunctionsIntegration.start_execution(state_machine))
 
         api_key = api.add_api_key("ApiKey", api_key_name="ApiKey", value="1234567890abcdefghij")
