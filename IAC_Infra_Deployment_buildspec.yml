@@ -10,7 +10,7 @@ phases:
      
   build:
     commands:
-      - cdk bootstrap
+      - cdk bootstrap --template bootstrap-template.yaml
       - cdk deploy --require-approval never
 
 artifacts:
