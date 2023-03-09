@@ -15,7 +15,7 @@ class FusionStack(Stack):
             self, 'Fusion-getAlertServiceAPI-dev',
             description='Test Lambda Function for Fusion backend',
             runtime=_lambda.Runtime.PYTHON_3_9,
-            code=_lambda.Code.from_asset('lambda'),
+            code=_lambda.Code.from_asset('sampledata'),
             handler='fusioncontroller.handler',
         )
 
