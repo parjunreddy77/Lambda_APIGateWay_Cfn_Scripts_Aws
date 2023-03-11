@@ -1,16 +1,16 @@
+from constructs import Construct
 from aws_cdk import (
     Stack,
     aws_lambda as _lambda,
     aws_apigateway as apigateway,
 )
 
-from constructs import Construct
 
-class ArianaStack(Stack):
+class FusionStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
-        super().__init__(scope, construct_id, **kwargs)
-
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
+        super().__init__(scope, id, **kwargs)
+      
         my_lambda = _lambda.Function(
             self, 'Fusion-getAlertServiceAPI-dev',
             description='Test Lambda Function for Fusion backend',
@@ -23,7 +23,6 @@ class ArianaStack(Stack):
             self,
             'fusion-test-backend-api',
             handler=my_lambda,
-            proxy=False,
             description='Test API for Fusion backend',
             deploy_options={
                  'stage_name': 'dev',
@@ -31,32 +30,33 @@ class ArianaStack(Stack):
         )
 
         alerts = api.root.add_resource("alerts")
-        proxy = alerts.add_proxy(any_method=False)
-        proxy.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        proxy.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+        alerts.add_method("GET", apigateway.LambdaIntegration(my_lambda))
+        alerts.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
 
         cases = api.root.add_resource("cases")
-        proxy = cases.add_proxy(any_method=False)
-        proxy.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        proxy.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+        cases.add_method("GET", apigateway.LambdaIntegration(my_lambda))
+        cases.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
 
         events = api.root.add_resource("events")
-        proxy = events.add_proxy(any_method=False)
-        proxy.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        proxy.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+        events.add_method("GET", apigateway.LambdaIntegration(my_lambda))
+        events.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
 
         export = api.root.add_resource("export")
         export.add_method("GET", apigateway.LambdaIntegration(my_lambda))
         export.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
 
-        getSummaryData = api.root.add_resource("getSummaryData")
-        getSummaryData.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        getSummaryData.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+        getsummarydata = api.root.add_resource("getsummarydata")
+        getsummarydata.add_method("GET", apigateway.LambdaIntegration(my_lambda))
+        getsummarydata.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+
+        test = api.root.add_resource("test")
+        test.add_method("GET", apigateway.LambdaIntegration(my_lambda))
+        test.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
 
         plan = api.add_usage_plan(
             'Fusion-API-Backend-Usage-Plan-dev',
             name='Fusion-API-Backend-Usage-Plan-dev',
-            description='Adding a usage plan to validate API Key',
+            description='Adding usage plan for to validate API Key',
             throttle=apigateway.ThrottleSettings(
                 rate_limit=100,
                 burst_limit=500
@@ -67,6 +67,6 @@ class ArianaStack(Stack):
             stage=api.deployment_stage,
             )
 
-        api_key = api.add_api_key("fusion-api-key-dev", api_key_name="fusion-api-key-dev", value="1234567890abcdefghij", description="Adding API Key with Value")
+        api_key = api.add_api_key("fusion-api-key-dev", api_key_name="fusion-api-key-dev", value="1234567890abcdefghij")
 
-        plan.add_api_key(api_key)
+        plan.add_api_key(api_key)        
