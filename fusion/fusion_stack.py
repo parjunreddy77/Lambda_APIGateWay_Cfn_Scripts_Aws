@@ -3,27 +3,64 @@ from aws_cdk import (
     aws_lambda as _lambda,
     aws_apigateway as apigateway,
 )
-
 from constructs import Construct
 
-class ArianaStack(Stack):
+class FusionStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        my_lambda = _lambda.Function(
+        FusionAlertsDev = _lambda.Function(
             self, 'Fusion-getAlertServiceAPI-dev',
             description='Test Lambda Function for Fusion backend',
             runtime=_lambda.Runtime.PYTHON_3_9,
-            code=_lambda.Code.from_asset('sampledata/data'),
-            handler='fusioncontroller.handler',
+            code=_lambda.Code.from_asset('Fusion-getAlertServiceAPI-dev'),
+            handler="lambda_function.handler1,alerts.handler2,config.handler3",
         )
 
-        api = apigateway.LambdaRestApi(
+        FusionCasesDev = _lambda.Function(
+            self, 'Fusion-getCaseServiceAPI-dev',
+            description='Test Lambda Function for Fusion backend',
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            code=_lambda.Code.from_asset('Fusion-getCaseServiceAPI-dev'),
+            handler="lambda_function.handler1,CaseDetails.handler2,cases.handler3,responseconfig.handler4",
+        )
+
+        FusionEventsDev = _lambda.Function(
+            self, 'Fusion-getEventAPI-dev',
+            description='Test Lambda Function for Fusion backend',
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            code=_lambda.Code.from_asset('Fusion-getEventAPI-dev'),
+            handler="lambda_function.handler1,events.handler2",
+        )
+
+        FusionExportDev = _lambda.Function(
+            self, 'Fusion-getExportData-dev',
+            description='Test Lambda Function for Fusion backend',
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            code=_lambda.Code.from_asset('Fusion-getExportData-dev'),
+            handler="lambda_function.handler1,config.handler2,exportData.handler3",
+        )
+
+        FusionSummaryDev = _lambda.Function(
+            self, 'Fusion-getSummaryData-dev',
+            description='Test Lambda Function for Fusion backend',
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            code=_lambda.Code.from_asset('Fusion-getSummaryData-dev'),
+            handler="lambda_function.handler1,config.handler2,summaryData.handler3",
+        )
+
+        FusionOptionsDev = _lambda.Function(
+            self, 'Fusion-optionsAPI-dev',
+            description='Test Lambda Function for Fusion backend',
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            code=_lambda.Code.from_asset('Fusion-optionsAPI-dev'),
+            handler="lambda_function.handler",
+        )
+
+        api = apigateway.RestApi(
             self,
             'fusion-test-backend-api',
-            handler=my_lambda,
-            proxy=False,
             description='Test API for Fusion backend',
             deploy_options={
                  'stage_name': 'dev',
@@ -32,26 +69,29 @@ class ArianaStack(Stack):
 
         alerts = api.root.add_resource("alerts")
         proxy = alerts.add_proxy(any_method=False)
-        proxy.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        proxy.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+        proxy.add_method("GET", apigateway.LambdaIntegration(FusionAlertsDev))
+        proxy.add_method("OPTIONS", apigateway.LambdaIntegration(FusionOptionsDev))
+
 
         cases = api.root.add_resource("cases")
         proxy = cases.add_proxy(any_method=False)
-        proxy.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        proxy.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+        proxy.add_method("GET", apigateway.LambdaIntegration(FusionCasesDev))
+        proxy.add_method("OPTIONS", apigateway.LambdaIntegration(FusionOptionsDev))
+
 
         events = api.root.add_resource("events")
         proxy = events.add_proxy(any_method=False)
-        proxy.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        proxy.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+        proxy.add_method("GET", apigateway.LambdaIntegration(FusionEventsDev))
+        proxy.add_method("OPTIONS", apigateway.LambdaIntegration(FusionOptionsDev))
 
         export = api.root.add_resource("export")
-        export.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        export.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+        export.add_method("GET", apigateway.LambdaIntegration(FusionExportDev))
+        export.add_method("OPTIONS", apigateway.LambdaIntegration(FusionOptionsDev))
 
         getSummaryData = api.root.add_resource("getSummaryData")
-        getSummaryData.add_method("GET", apigateway.LambdaIntegration(my_lambda))
-        getSummaryData.add_method("OPTIONS", apigateway.LambdaIntegration(my_lambda))
+        getSummaryData.add_method("GET", apigateway.LambdaIntegration(FusionSummaryDev))
+        getSummaryData.add_method("OPTIONS", apigateway.LambdaIntegration(FusionOptionsDev))
+
 
         plan = api.add_usage_plan(
             'Fusion-API-Backend-Usage-Plan-dev',
